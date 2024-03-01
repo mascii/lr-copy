@@ -40,8 +40,9 @@ func main() {
 	}
 
 	// ディレクトリを作成しておく処理
-	for _, dm := range plan {
-		if err := os.MkdirAll(dm.DstDir, 0755); err != nil {
+	dstDirs := plan.GetDstDirs()
+	for dstDir := range dstDirs {
+		if err := os.MkdirAll(dstDir, 0755); err != nil {
 			panic(err)
 		}
 	}
