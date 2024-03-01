@@ -52,8 +52,11 @@ func main() {
 			continue
 		}
 
-		if err := copy(m.SrcFilePath, m.DstFilePath); err != nil {
-			fmt.Printf("Failed to copy %s to %s (%v)\n", m.SrcFilePath, m.DstFilePath, err)
+		skipped, err := copy(m.SrcFilePath, m.DstFilePath)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "Failed to copy %s to %s (%v)\n", m.SrcFilePath, m.DstFilePath, err)
+		} else if skipped {
+			fmt.Printf("Skipped %s to %s\n", m.SrcFilePath, m.DstFilePath)
 		} else {
 			fmt.Printf("Copied %s to %s\n", m.SrcFilePath, m.DstFilePath)
 		}
@@ -84,22 +87,26 @@ func confirmContinuation() bool {
 	return true
 }
 
-func copy(from, to string) error {
+func copy(from, to string) (skipped bool, err error) {
 	src, err := os.Open(from)
 	if err != nil {
-		return err
+		return false, err
 	}
 	defer src.Close()
 
+	if _, err := os.Stat(to); !os.IsNotExist(err) {
+		return true, nil
+	}
+
 	dst, err := os.Create(to)
 	if err != nil {
-		return err
+		return false, err
 	}
 	defer dst.Close()
 
 	if _, err := io.Copy(dst, src); err != nil {
-		return err
+		return false, err
 	}
 
-	return nil
+	return false, nil
 }
