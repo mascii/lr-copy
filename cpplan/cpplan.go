@@ -1,6 +1,7 @@
 package cpplan
 
 import (
+	"fmt"
 	"io/fs"
 	"os"
 	"path"
@@ -52,7 +53,8 @@ func GenerateCopyPlan(files []fs.DirEntry, srcDirPath, dstDirPath string) (Plan,
 
 		t, err := loadShootingDateFromExif(srcFullPath)
 		if err != nil {
-			return nil, err
+			fmt.Fprintf(os.Stderr, "Failed to load %s (%v)\n", srcFullPath, err)
+			continue
 		}
 
 		fileNameWithoutExt := getFileNameWithoutExt(file.Name())
