@@ -53,10 +53,10 @@ func main() {
 		}
 
 		if err := copy(m.SrcFilePath, m.DstFilePath); err != nil {
-			fmt.Printf("Failed to copy %s to %s\n", m.SrcFilePath, m.DstFilePath)
+			fmt.Printf("Failed to copy %s to %s (%v)\n", m.SrcFilePath, m.DstFilePath, err)
+		} else {
+			fmt.Printf("Copied %s to %s\n", m.SrcFilePath, m.DstFilePath)
 		}
-
-		fmt.Printf("Copied %s to %s\n", m.SrcFilePath, m.DstFilePath)
 	}
 }
 
