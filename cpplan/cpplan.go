@@ -10,24 +10,31 @@ import (
 	"github.com/rwcarlsen/goexif/exif"
 )
 
-type Plan map[string]DirectoryMapping
+type Plan map[string]*DirectoryMapping
 
-func (p Plan) IsTargetFile(fileName string) (DirectoryMapping, bool) {
-	dm, ok := p[getFileNameWithoutExt(fileName)]
-	return dm, ok
+func (p Plan) FindFilePathMapping(file fs.DirEntry) (_ *FilePathMapping, ok bool) {
+	if file.IsDir() {
+		return nil, false
+	}
+	dm, ok := p[getFileNameWithoutExt(file.Name())]
+	if !ok {
+		return nil, false
+	}
 
+	return &FilePathMapping{
+		SrcFilePath: path.Join(dm.SrcDir, file.Name()),
+		DstFilePath: path.Join(dm.DstDir, file.Name()),
+	}, ok
+}
+
+type FilePathMapping struct {
+	SrcFilePath string
+	DstFilePath string
 }
 
 type DirectoryMapping struct {
 	SrcDir string
 	DstDir string
-}
-
-func (p *DirectoryMapping) SrcFullPath(fileName string) string {
-	return path.Join(p.SrcDir, fileName)
-}
-func (p *DirectoryMapping) DstFullPath(fileName string) string {
-	return path.Join(p.DstDir, fileName)
 }
 
 func GenerateCopyPlan(files []fs.DirEntry, srcDirPath, dstDirPath string) (Plan, error) {
@@ -49,7 +56,7 @@ func GenerateCopyPlan(files []fs.DirEntry, srcDirPath, dstDirPath string) (Plan,
 		}
 
 		fileNameWithoutExt := getFileNameWithoutExt(file.Name())
-		plan[fileNameWithoutExt] = DirectoryMapping{
+		plan[fileNameWithoutExt] = &DirectoryMapping{
 			SrcDir: srcDirPath,
 			DstDir: path.Join(dstDirPath, t.Format("2006/2006-01-02")),
 		}

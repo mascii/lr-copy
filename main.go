@@ -47,34 +47,26 @@ func main() {
 	}
 
 	for _, file := range files {
-		if file.IsDir() {
-			continue
-		}
-		dm, ok := plan.IsTargetFile(file.Name())
+		m, ok := plan.FindFilePathMapping(file)
 		if !ok {
 			continue
 		}
 
-		from := dm.SrcFullPath(file.Name())
-		to := dm.DstFullPath(file.Name())
-		if err := copy(from, to); err != nil {
-			fmt.Printf("Failed to copy %s to %s\n", from, to)
+		if err := copy(m.SrcFilePath, m.DstFilePath); err != nil {
+			fmt.Printf("Failed to copy %s to %s\n", m.SrcFilePath, m.DstFilePath)
 		}
 
-		fmt.Printf("Copied %s to %s\n", from, to)
+		fmt.Printf("Copied %s to %s\n", m.SrcFilePath, m.DstFilePath)
 	}
 }
 
 func printPlan(files []fs.DirEntry, plan cpplan.Plan) {
 	for _, file := range files {
-		if file.IsDir() {
-			continue
-		}
-		dm, ok := plan.IsTargetFile(file.Name())
+		m, ok := plan.FindFilePathMapping(file)
 		if !ok {
 			continue
 		}
-		fmt.Printf("%s => %s\n", dm.SrcFullPath(file.Name()), dm.DstFullPath(file.Name()))
+		fmt.Printf("%s => %s\n", m.SrcFilePath, m.DstFilePath)
 	}
 }
 
