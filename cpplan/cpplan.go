@@ -60,7 +60,7 @@ func GenerateCopyPlan(files []fs.DirEntry, srcDirPath, dstDirPath string) (Plan,
 		fileNameWithoutExt := getFileNameWithoutExt(file.Name())
 		plan[fileNameWithoutExt] = &DirectoryMapping{
 			SrcDir: srcDirPath,
-			DstDir: path.Join(dstDirPath, t.Format("2006/2006-01-02")),
+			DstDir: path.Join(dstDirPath, t.Format("2006/2006-01-02")), // Lightroom のフォルダ名の形式に合わせる
 		}
 	}
 
