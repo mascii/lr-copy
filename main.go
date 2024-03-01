@@ -50,7 +50,7 @@ func main() {
 		if file.IsDir() {
 			continue
 		}
-		dm, ok := plan.Lookup(file.Name())
+		dm, ok := plan.IsTargetFile(file.Name())
 		if !ok {
 			continue
 		}
@@ -70,7 +70,7 @@ func printPlan(files []fs.DirEntry, plan cpplan.Plan) {
 		if file.IsDir() {
 			continue
 		}
-		dm, ok := plan.Lookup(file.Name())
+		dm, ok := plan.IsTargetFile(file.Name())
 		if !ok {
 			continue
 		}

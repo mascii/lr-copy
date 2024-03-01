@@ -12,7 +12,7 @@ import (
 
 type Plan map[string]DirectoryMapping
 
-func (p Plan) Lookup(fileName string) (DirectoryMapping, bool) {
+func (p Plan) IsTargetFile(fileName string) (DirectoryMapping, bool) {
 	dm, ok := p[getFileNameWithoutExt(fileName)]
 	return dm, ok
 
