@@ -65,8 +65,8 @@ func GenerateCopyPlan(files []fs.DirEntry, srcDirPath, dstDirPath string) (Plan,
 	return plan, nil
 }
 
-func isJpegFile(name string) bool {
-	ext := path.Ext(name)
+func isJpegFile(fileName string) bool {
+	ext := path.Ext(fileName)
 	switch strings.ToLower(ext) {
 	case ".jpg", ".jpeg":
 		return true
