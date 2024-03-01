@@ -10,6 +10,16 @@ import (
 	"github.com/rwcarlsen/goexif/exif"
 )
 
+type DirectoryMapping struct {
+	SrcDir string
+	DstDir string
+}
+
+type FilePathMapping struct {
+	SrcFilePath string
+	DstFilePath string
+}
+
 type Plan map[string]*DirectoryMapping
 
 func (p Plan) FindFilePathMapping(file fs.DirEntry) (_ *FilePathMapping, ok bool) {
@@ -25,16 +35,6 @@ func (p Plan) FindFilePathMapping(file fs.DirEntry) (_ *FilePathMapping, ok bool
 		SrcFilePath: path.Join(dm.SrcDir, file.Name()),
 		DstFilePath: path.Join(dm.DstDir, file.Name()),
 	}, ok
-}
-
-type FilePathMapping struct {
-	SrcFilePath string
-	DstFilePath string
-}
-
-type DirectoryMapping struct {
-	SrcDir string
-	DstDir string
 }
 
 func GenerateCopyPlan(files []fs.DirEntry, srcDirPath, dstDirPath string) (Plan, error) {
