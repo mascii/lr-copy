@@ -17,8 +17,12 @@ type DirectoryMapping struct {
 	shootingDate *time.Time
 }
 
-func (dm *DirectoryMapping) getDstDirPath() string {
-	return path.Join(dm.dstDirPath, dm.shootingDate.Format("2006/2006-01-02")) // Lightroom のフォルダ名の形式に合わせる
+func (dm *DirectoryMapping) getDstDirPath(category string) string {
+	return path.Join(
+		dm.dstDirPath,
+		category,
+		dm.shootingDate.Format("2006/2006-01-02"), // Lightroom のフォルダ名の形式に合わせる
+	)
 }
 
 type FilePathMapping struct {
@@ -27,7 +31,8 @@ type FilePathMapping struct {
 }
 
 type Plan struct {
-	mapping map[string]*DirectoryMapping
+	mapping  map[string]*DirectoryMapping
+	separate bool
 }
 
 func (p Plan) FindFilePathMapping(file fs.DirEntry) (_ *FilePathMapping, ok bool) {
@@ -39,13 +44,18 @@ func (p Plan) FindFilePathMapping(file fs.DirEntry) (_ *FilePathMapping, ok bool
 		return nil, false
 	}
 
+	category := ""
+	if p.separate && !isJpegFile(file.Name()) {
+		category = strings.ToUpper(path.Ext(file.Name())[1:]) // "ORF", "ARW", etc.
+	}
+
 	return &FilePathMapping{
 		SrcFilePath: path.Join(dm.srcDirPath, file.Name()),
-		DstFilePath: path.Join(dm.getDstDirPath(), file.Name()),
+		DstFilePath: path.Join(dm.getDstDirPath(category), file.Name()),
 	}, ok
 }
 
-func GenerateCopyPlan(files []fs.DirEntry, srcDirPath, dstDirPath string) (Plan, error) {
+func GenerateCopyPlan(files []fs.DirEntry, srcDirPath, dstDirPath string, separate bool) (Plan, error) {
 	mapping := make(map[string]*DirectoryMapping, len(files))
 
 	for _, file := range files {
@@ -73,7 +83,8 @@ func GenerateCopyPlan(files []fs.DirEntry, srcDirPath, dstDirPath string) (Plan,
 	}
 
 	return Plan{
-		mapping: mapping,
+		mapping:  mapping,
+		separate: separate,
 	}, nil
 }
 

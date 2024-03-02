@@ -19,6 +19,7 @@ func main() {
 	srcDirPath := flag.String("src", "", "Source directory path")
 	dstDirPath := flag.String("dst", "", "Destination directory path")
 	overwrite := flag.Bool("overwrite", false, "Overwrite existing files")
+	separate := flag.Bool("separate", true, "Separate directory excepting JPEG by file type (e.g. ORF, ARW, etc.)")
 
 	flag.Parse()
 
@@ -33,7 +34,7 @@ func main() {
 		log.Fatal(err)
 	}
 
-	plan, err := cpplan.GenerateCopyPlan(files, *srcDirPath, *dstDirPath)
+	plan, err := cpplan.GenerateCopyPlan(files, *srcDirPath, *dstDirPath, *separate)
 	if err != nil {
 		panic(err)
 	}
