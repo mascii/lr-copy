@@ -34,7 +34,8 @@ func main() {
 		log.Fatal(err)
 	}
 
-	plan := cpplan.GenerateCopyPlan(files, *srcDirPath, *dstBaseDirPath, *separate)
+	cfg := cpplan.NewGenerateCopyPlanConfig(*srcDirPath, *dstBaseDirPath, *separate)
+	plan := cpplan.GenerateCopyPlan(files, cfg)
 	if plan.HasNoFilesToCopy() {
 		fmt.Println("No files to copy.")
 		return

@@ -129,6 +129,61 @@ func Test_FindFilePathMapping_Separate_Is_False(t *testing.T) {
 	assert.Nil(t, m)
 }
 
+func Test_GenerateCopyPlan(t *testing.T) {
+	date1 := time.Date(2024, 2, 12, 0, 0, 0, 0, time.UTC)
+	date2 := time.Date(2024, 3, 2, 0, 0, 0, 0, time.UTC)
+
+	files := []*DirEntryMock{
+		{
+			name:  "example001.jpg",
+			isDir: false,
+		},
+		{
+			name:  "example001.raw",
+			isDir: false,
+		},
+		{
+			name:  "example002.jpg",
+			isDir: false,
+		},
+		{
+			name:  "example002.raw",
+			isDir: false,
+		},
+		{
+			name:  "directory_name",
+			isDir: true,
+		},
+	}
+	cfg := GenerateCopyPlanConfig{
+		SrcDirPath:     "/path/to/photos",
+		DstBaseDirPath: "/home/user/photos",
+		Separate:       true,
+		LoadShootingDateFromExif: func(filePath string) (*time.Time, error) {
+			switch filePath {
+			case "/path/to/photos/example001.jpg":
+				return &date1, nil
+			case "/path/to/photos/example002.jpg":
+				return &date2, nil
+			default:
+				assert.FailNow(t, "unexpected file path: %s", filePath)
+				panic(filePath)
+			}
+		},
+	}
+
+	plan := GenerateCopyPlan(files, cfg)
+	assert.Equal(t, Plan{
+		mapping: map[string]*time.Time{
+			"example001": &date1,
+			"example002": &date2,
+		},
+		srcDirPath:     "/path/to/photos",
+		dstBaseDirPath: "/home/user/photos",
+		separate:       true,
+	}, plan)
+}
+
 func Test_isJpegFile(t *testing.T) {
 	testCases := []struct {
 		fileName string

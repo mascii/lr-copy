@@ -2,7 +2,6 @@ package cpplan
 
 import (
 	"fmt"
-	"io/fs"
 	"os"
 	"path"
 	"strings"
@@ -61,7 +60,23 @@ func (p Plan) FindFilePathMapping(file DirEntrySubset) (_ *FilePathMapping, ok b
 	}, true
 }
 
-func GenerateCopyPlan(files []fs.DirEntry, srcDirPath, dstBaseDirPath string, separate bool) Plan {
+type GenerateCopyPlanConfig struct {
+	SrcDirPath               string
+	DstBaseDirPath           string
+	Separate                 bool
+	LoadShootingDateFromExif func(filePath string) (*time.Time, error)
+}
+
+func NewGenerateCopyPlanConfig(srcDirPath, dstBaseDirPath string, separate bool) GenerateCopyPlanConfig {
+	return GenerateCopyPlanConfig{
+		SrcDirPath:               srcDirPath,
+		DstBaseDirPath:           dstBaseDirPath,
+		Separate:                 separate,
+		LoadShootingDateFromExif: loadShootingDateFromExif,
+	}
+}
+
+func GenerateCopyPlan[T DirEntrySubset](files []T, cfg GenerateCopyPlanConfig) Plan {
 	mapping := make(map[string]*time.Time, len(files))
 
 	for _, file := range files {
@@ -72,9 +87,9 @@ func GenerateCopyPlan(files []fs.DirEntry, srcDirPath, dstBaseDirPath string, se
 			continue
 		}
 
-		srcFullPath := path.Join(srcDirPath, file.Name())
+		srcFullPath := path.Join(cfg.SrcDirPath, file.Name())
 
-		date, err := loadShootingDateFromExif(srcFullPath)
+		date, err := cfg.LoadShootingDateFromExif(srcFullPath)
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "Failed to load %s (%v)\n", srcFullPath, err)
 			continue
@@ -86,9 +101,9 @@ func GenerateCopyPlan(files []fs.DirEntry, srcDirPath, dstBaseDirPath string, se
 
 	return Plan{
 		mapping:        mapping,
-		srcDirPath:     srcDirPath,
-		dstBaseDirPath: dstBaseDirPath,
-		separate:       separate,
+		srcDirPath:     cfg.SrcDirPath,
+		dstBaseDirPath: cfg.DstBaseDirPath,
+		separate:       cfg.Separate,
 	}
 }
 
