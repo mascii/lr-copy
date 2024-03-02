@@ -16,6 +16,10 @@ type DirectoryMapping struct {
 	dstDirPath string
 }
 
+func (dm *DirectoryMapping) getDstDirPath() string {
+	return dm.dstDirPath
+}
+
 type FilePathMapping struct {
 	SrcFilePath string
 	DstFilePath string
@@ -34,7 +38,7 @@ func (p Plan) FindFilePathMapping(file fs.DirEntry) (_ *FilePathMapping, ok bool
 
 	return &FilePathMapping{
 		SrcFilePath: path.Join(dm.srcDirPath, file.Name()),
-		DstFilePath: path.Join(dm.dstDirPath, file.Name()),
+		DstFilePath: path.Join(dm.getDstDirPath(), file.Name()),
 	}, ok
 }
 
