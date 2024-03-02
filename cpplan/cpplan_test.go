@@ -15,7 +15,7 @@ type DirEntryMock struct {
 func (d *DirEntryMock) Name() string { return d.name }
 func (d *DirEntryMock) IsDir() bool  { return d.isDir }
 
-func TestHasNoFilesToCopy(t *testing.T) {
+func Test_HasNoFilesToCopy(t *testing.T) {
 	d := time.Date(2022, 1, 1, 0, 0, 0, 0, time.UTC)
 
 	p := Plan{
