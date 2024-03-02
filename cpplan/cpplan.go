@@ -11,6 +11,12 @@ import (
 	"github.com/rwcarlsen/goexif/exif"
 )
 
+// DirEntrySubset is a subset of fs.DirEntry.
+type DirEntrySubset interface {
+	Name() string
+	IsDir() bool
+}
+
 type FilePathMapping struct {
 	SrcFilePath string
 	DstFilePath string
@@ -35,7 +41,7 @@ func (p Plan) HasNoFilesToCopy() bool {
 	return len(p.mapping) == 0
 }
 
-func (p Plan) FindFilePathMapping(file fs.DirEntry) (_ *FilePathMapping, ok bool) {
+func (p Plan) FindFilePathMapping(file DirEntrySubset) (_ *FilePathMapping, ok bool) {
 	if file.IsDir() {
 		return nil, false
 	}
