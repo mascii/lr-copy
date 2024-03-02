@@ -12,14 +12,13 @@ import (
 )
 
 type DirectoryMapping struct {
-	srcDirPath   string
-	dstDirPath   string
-	shootingDate *time.Time
+	dstBaseDirPath string
+	shootingDate   *time.Time
 }
 
 func (dm *DirectoryMapping) getDstDirPath(category string) string {
 	return path.Join(
-		dm.dstDirPath,
+		dm.dstBaseDirPath,
 		category,
 		dm.shootingDate.Format("2006/2006-01-02"), // Lightroom のフォルダ名の形式に合わせる
 	)
@@ -31,8 +30,9 @@ type FilePathMapping struct {
 }
 
 type Plan struct {
-	mapping  map[string]*DirectoryMapping
-	separate bool
+	mapping    map[string]*DirectoryMapping
+	srcDirPath string
+	separate   bool
 }
 
 func (p Plan) FindFilePathMapping(file fs.DirEntry) (_ *FilePathMapping, ok bool) {
@@ -50,12 +50,12 @@ func (p Plan) FindFilePathMapping(file fs.DirEntry) (_ *FilePathMapping, ok bool
 	}
 
 	return &FilePathMapping{
-		SrcFilePath: path.Join(dm.srcDirPath, file.Name()),
+		SrcFilePath: path.Join(p.srcDirPath, file.Name()),
 		DstFilePath: path.Join(dm.getDstDirPath(category), file.Name()),
 	}, ok
 }
 
-func GenerateCopyPlan(files []fs.DirEntry, srcDirPath, dstDirPath string, separate bool) (Plan, error) {
+func GenerateCopyPlan(files []fs.DirEntry, srcDirPath, dstBaseDirPath string, separate bool) (Plan, error) {
 	mapping := make(map[string]*DirectoryMapping, len(files))
 
 	for _, file := range files {
@@ -68,7 +68,7 @@ func GenerateCopyPlan(files []fs.DirEntry, srcDirPath, dstDirPath string, separa
 
 		srcFullPath := path.Join(srcDirPath, file.Name())
 
-		t, err := loadShootingDateFromExif(srcFullPath)
+		shootingDate, err := loadShootingDateFromExif(srcFullPath)
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "Failed to load %s (%v)\n", srcFullPath, err)
 			continue
@@ -76,15 +76,15 @@ func GenerateCopyPlan(files []fs.DirEntry, srcDirPath, dstDirPath string, separa
 
 		fileNameWithoutExt := getFileNameWithoutExt(file.Name())
 		mapping[fileNameWithoutExt] = &DirectoryMapping{
-			srcDirPath:   srcDirPath,
-			dstDirPath:   dstDirPath,
-			shootingDate: t,
+			dstBaseDirPath: dstBaseDirPath,
+			shootingDate:   shootingDate,
 		}
 	}
 
 	return Plan{
-		mapping:  mapping,
-		separate: separate,
+		mapping:    mapping,
+		srcDirPath: srcDirPath,
+		separate:   separate,
 	}, nil
 }
 

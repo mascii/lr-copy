@@ -17,13 +17,13 @@ import (
 // main
 func main() {
 	srcDirPath := flag.String("src", "", "Source directory path")
-	dstDirPath := flag.String("dst", "", "Destination directory path")
+	dstBaseDirPath := flag.String("dst", "", "Destination directory base path")
 	overwrite := flag.Bool("overwrite", false, "Overwrite existing files")
 	separate := flag.Bool("separate", true, "Separate directory excepting JPEG by file type (e.g. ORF, ARW, etc.)")
 
 	flag.Parse()
 
-	if *srcDirPath == "" || *dstDirPath == "" {
+	if *srcDirPath == "" || *dstBaseDirPath == "" {
 		fmt.Print("Please provide source and destination directory paths.\n\n")
 		flag.Usage()
 		return
@@ -34,7 +34,7 @@ func main() {
 		log.Fatal(err)
 	}
 
-	plan, err := cpplan.GenerateCopyPlan(files, *srcDirPath, *dstDirPath, *separate)
+	plan, err := cpplan.GenerateCopyPlan(files, *srcDirPath, *dstBaseDirPath, *separate)
 	if err != nil {
 		panic(err)
 	}
