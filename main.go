@@ -8,6 +8,7 @@ import (
 	"io/fs"
 	"log"
 	"os"
+	"path"
 	"strings"
 
 	"github.com/mascii/lr-copy/cpplan"
@@ -42,14 +43,6 @@ func main() {
 
 	if !confirmContinuation() {
 		return
-	}
-
-	// ディレクトリを作成しておく処理
-	dstDirs := plan.GetDstDirs()
-	for dstDir := range dstDirs {
-		if err := os.MkdirAll(dstDir, 0755); err != nil {
-			panic(err)
-		}
 	}
 
 	for _, file := range files {
@@ -109,6 +102,11 @@ func copy(from, to string, overwrite bool) (skipped bool, err error) {
 		if _, err := os.Stat(to); !os.IsNotExist(err) {
 			return true, nil
 		}
+	}
+
+	// ディレクトリを作成しておく処理
+	if err := os.MkdirAll(path.Dir(to), 0755); err != nil {
+		return false, err
 	}
 
 	dst, err := os.Create(to)

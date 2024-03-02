@@ -38,14 +38,6 @@ func (p Plan) FindFilePathMapping(file fs.DirEntry) (_ *FilePathMapping, ok bool
 	}, ok
 }
 
-func (p Plan) GetDstDirs() map[string]struct{} {
-	paths := make(map[string]struct{}, len(p))
-	for _, dm := range p {
-		paths[dm.dstDirPath] = struct{}{}
-	}
-	return paths
-}
-
 func GenerateCopyPlan(files []fs.DirEntry, srcDirPath, dstDirPath string) (Plan, error) {
 	plan := make(Plan, len(files))
 
