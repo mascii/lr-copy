@@ -2,6 +2,7 @@ package main
 
 import (
 	"bufio"
+	"flag"
 	"fmt"
 	"io"
 	"io/fs"
@@ -14,20 +15,23 @@ import (
 
 // main
 func main() {
-	if len(os.Args) < 3 {
-		fmt.Println("Please provide source and destination directory paths.")
+	srcDirPath := flag.String("src", "", "Source directory path")
+	dstDirPath := flag.String("dst", "", "Destination directory path")
+
+	flag.Parse()
+
+	if *srcDirPath == "" || *dstDirPath == "" {
+		fmt.Print("Please provide source and destination directory paths.\n\n")
+		flag.Usage()
 		return
 	}
 
-	srcDirPath := os.Args[1]
-	dstDirPath := os.Args[2]
-
-	files, err := os.ReadDir(srcDirPath)
+	files, err := os.ReadDir(*srcDirPath)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	plan, err := cpplan.GenerateCopyPlan(files, srcDirPath, dstDirPath)
+	plan, err := cpplan.GenerateCopyPlan(files, *srcDirPath, *dstDirPath)
 	if err != nil {
 		panic(err)
 	}
