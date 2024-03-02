@@ -35,6 +35,11 @@ func main() {
 	}
 
 	plan := cpplan.GenerateCopyPlan(files, *srcDirPath, *dstBaseDirPath, *separate)
+	if plan.HasNoFilesToCopy() {
+		fmt.Println("No files to copy.")
+		return
+	}
+
 	printPlan(files, plan)
 	printDivider()
 	if !confirmContinuation() {

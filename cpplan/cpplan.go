@@ -31,6 +31,10 @@ func (p Plan) getDstDirPath(category string, date *time.Time) string {
 	)
 }
 
+func (p Plan) HasNoFilesToCopy() bool {
+	return len(p.mapping) == 0
+}
+
 func (p Plan) FindFilePathMapping(file fs.DirEntry) (_ *FilePathMapping, ok bool) {
 	if file.IsDir() {
 		return nil, false
