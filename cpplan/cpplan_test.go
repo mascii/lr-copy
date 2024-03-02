@@ -1,6 +1,7 @@
 package cpplan
 
 import (
+	"errors"
 	"testing"
 	"time"
 
@@ -158,6 +159,10 @@ func Test_GenerateCopyPlan(t *testing.T) {
 			isDir: false,
 		},
 		{
+			name:  "error.jpg",
+			isDir: false,
+		},
+		{
 			name:  "directory_name",
 			isDir: true,
 		},
@@ -172,6 +177,8 @@ func Test_GenerateCopyPlan(t *testing.T) {
 				return &date1, nil
 			case "/path/to/photos/example002.jpg":
 				return &date2, nil
+			case "/path/to/photos/error.jpg":
+				return nil, errors.New("error.jpg")
 			default:
 				assert.FailNow(t, "unexpected file path: %s", filePath)
 				panic(filePath)
