@@ -36,12 +36,16 @@ func main() {
 
 	plan := cpplan.GenerateCopyPlan(files, *srcDirPath, *dstBaseDirPath, *separate)
 	printPlan(files, plan)
-
-	fmt.Println("-----------------------------------")
-
+	printDivider()
 	if !confirmContinuation() {
 		return
 	}
+
+	stats := struct {
+		copied  uint
+		skipped uint
+		failed  uint
+	}{}
 
 	for _, file := range files {
 		m, ok := plan.FindFilePathMapping(file)
@@ -52,12 +56,18 @@ func main() {
 		skipped, err := copy(m.SrcFilePath, m.DstFilePath, *overwrite)
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "Failed to copy %s to %s (%v)\n", m.SrcFilePath, m.DstFilePath, err)
+			stats.failed++
 		} else if skipped {
 			fmt.Printf("Skipped %s to %s\n", m.SrcFilePath, m.DstFilePath)
+			stats.skipped++
 		} else {
 			fmt.Printf("Copied %s to %s\n", m.SrcFilePath, m.DstFilePath)
+			stats.copied++
 		}
 	}
+
+	printDivider()
+	fmt.Printf("Copied: %d, Skipped: %d, Failed: %d\n", stats.copied, stats.skipped, stats.failed)
 }
 
 func printPlan(files []fs.DirEntry, plan cpplan.Plan) {
@@ -68,6 +78,10 @@ func printPlan(files []fs.DirEntry, plan cpplan.Plan) {
 		}
 		fmt.Printf("%s => %s\n", m.SrcFilePath, m.DstFilePath)
 	}
+}
+
+func printDivider() {
+	fmt.Println("-----------------------------------")
 }
 
 func confirmContinuation() bool {
