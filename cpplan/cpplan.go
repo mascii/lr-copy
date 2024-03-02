@@ -12,8 +12,8 @@ import (
 )
 
 type DirectoryMapping struct {
-	srcDir string
-	dstDir string
+	srcDirPath string
+	dstDirPath string
 }
 
 type FilePathMapping struct {
@@ -33,15 +33,15 @@ func (p Plan) FindFilePathMapping(file fs.DirEntry) (_ *FilePathMapping, ok bool
 	}
 
 	return &FilePathMapping{
-		SrcFilePath: path.Join(dm.srcDir, file.Name()),
-		DstFilePath: path.Join(dm.dstDir, file.Name()),
+		SrcFilePath: path.Join(dm.srcDirPath, file.Name()),
+		DstFilePath: path.Join(dm.dstDirPath, file.Name()),
 	}, ok
 }
 
 func (p Plan) GetDstDirs() map[string]struct{} {
 	paths := make(map[string]struct{}, len(p))
 	for _, dm := range p {
-		paths[dm.dstDir] = struct{}{}
+		paths[dm.dstDirPath] = struct{}{}
 	}
 	return paths
 }
@@ -67,8 +67,8 @@ func GenerateCopyPlan(files []fs.DirEntry, srcDirPath, dstDirPath string) (Plan,
 
 		fileNameWithoutExt := getFileNameWithoutExt(file.Name())
 		plan[fileNameWithoutExt] = &DirectoryMapping{
-			srcDir: srcDirPath,
-			dstDir: path.Join(dstDirPath, t.Format("2006/2006-01-02")), // Lightroom のフォルダ名の形式に合わせる
+			srcDirPath: srcDirPath,
+			dstDirPath: path.Join(dstDirPath, t.Format("2006/2006-01-02")), // Lightroom のフォルダ名の形式に合わせる
 		}
 	}
 
