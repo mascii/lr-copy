@@ -11,17 +11,13 @@ import (
 	"github.com/rwcarlsen/goexif/exif"
 )
 
-type DirectoryMapping struct {
-	shootingDate *time.Time
-}
-
 type FilePathMapping struct {
 	SrcFilePath string
 	DstFilePath string
 }
 
 type Plan struct {
-	mapping        map[string]*DirectoryMapping
+	mapping        map[string]*time.Time // mapping[ファイル名(拡張子なし)] = 撮影日時
 	srcDirPath     string
 	dstBaseDirPath string
 	separate       bool
@@ -39,7 +35,7 @@ func (p Plan) FindFilePathMapping(file fs.DirEntry) (_ *FilePathMapping, ok bool
 	if file.IsDir() {
 		return nil, false
 	}
-	dm, ok := p.mapping[getFileNameWithoutExt(file.Name())]
+	date, ok := p.mapping[getFileNameWithoutExt(file.Name())]
 	if !ok {
 		return nil, false
 	}
@@ -51,12 +47,12 @@ func (p Plan) FindFilePathMapping(file fs.DirEntry) (_ *FilePathMapping, ok bool
 
 	return &FilePathMapping{
 		SrcFilePath: path.Join(p.srcDirPath, file.Name()),
-		DstFilePath: path.Join(p.getDstDirPath(category, dm.shootingDate), file.Name()),
+		DstFilePath: path.Join(p.getDstDirPath(category, date), file.Name()),
 	}, ok
 }
 
 func GenerateCopyPlan(files []fs.DirEntry, srcDirPath, dstBaseDirPath string, separate bool) (Plan, error) {
-	mapping := make(map[string]*DirectoryMapping, len(files))
+	mapping := make(map[string]*time.Time, len(files))
 
 	for _, file := range files {
 		if file.IsDir() {
@@ -68,16 +64,14 @@ func GenerateCopyPlan(files []fs.DirEntry, srcDirPath, dstBaseDirPath string, se
 
 		srcFullPath := path.Join(srcDirPath, file.Name())
 
-		shootingDate, err := loadShootingDateFromExif(srcFullPath)
+		date, err := loadShootingDateFromExif(srcFullPath)
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "Failed to load %s (%v)\n", srcFullPath, err)
 			continue
 		}
 
 		fileNameWithoutExt := getFileNameWithoutExt(file.Name())
-		mapping[fileNameWithoutExt] = &DirectoryMapping{
-			shootingDate: shootingDate,
-		}
+		mapping[fileNameWithoutExt] = date
 	}
 
 	return Plan{
