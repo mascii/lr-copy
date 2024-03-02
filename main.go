@@ -58,7 +58,7 @@ func main() {
 			continue
 		}
 
-		skipped, err := copy(m.SrcFilePath, m.DstFilePath, *overwrite)
+		skipped, err := copyFile(m.SrcFilePath, m.DstFilePath, *overwrite)
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "Failed to copy %s to %s (%v)\n", m.SrcFilePath, m.DstFilePath, err)
 			stats.failed++
@@ -106,7 +106,7 @@ func confirmContinuation() bool {
 	return true
 }
 
-func copy(from, to string, overwrite bool) (skipped bool, err error) {
+func copyFile(from, to string, overwrite bool) (skipped bool, err error) {
 	src, err := os.Open(from)
 	if err != nil {
 		return false, err
