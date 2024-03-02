@@ -26,13 +26,15 @@ type FilePathMapping struct {
 	DstFilePath string
 }
 
-type Plan map[string]*DirectoryMapping
+type Plan struct {
+	mapping map[string]*DirectoryMapping
+}
 
 func (p Plan) FindFilePathMapping(file fs.DirEntry) (_ *FilePathMapping, ok bool) {
 	if file.IsDir() {
 		return nil, false
 	}
-	dm, ok := p[getFileNameWithoutExt(file.Name())]
+	dm, ok := p.mapping[getFileNameWithoutExt(file.Name())]
 	if !ok {
 		return nil, false
 	}
@@ -44,7 +46,7 @@ func (p Plan) FindFilePathMapping(file fs.DirEntry) (_ *FilePathMapping, ok bool
 }
 
 func GenerateCopyPlan(files []fs.DirEntry, srcDirPath, dstDirPath string) (Plan, error) {
-	plan := make(Plan, len(files))
+	mapping := make(map[string]*DirectoryMapping, len(files))
 
 	for _, file := range files {
 		if file.IsDir() {
@@ -63,14 +65,16 @@ func GenerateCopyPlan(files []fs.DirEntry, srcDirPath, dstDirPath string) (Plan,
 		}
 
 		fileNameWithoutExt := getFileNameWithoutExt(file.Name())
-		plan[fileNameWithoutExt] = &DirectoryMapping{
+		mapping[fileNameWithoutExt] = &DirectoryMapping{
 			srcDirPath:   srcDirPath,
 			dstDirPath:   dstDirPath,
 			shootingDate: t,
 		}
 	}
 
-	return plan, nil
+	return Plan{
+		mapping: mapping,
+	}, nil
 }
 
 func isJpegFile(fileName string) bool {
