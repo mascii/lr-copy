@@ -12,12 +12,13 @@ import (
 )
 
 type DirectoryMapping struct {
-	srcDirPath string
-	dstDirPath string
+	srcDirPath   string
+	dstDirPath   string
+	shootingDate *time.Time
 }
 
 func (dm *DirectoryMapping) getDstDirPath() string {
-	return dm.dstDirPath
+	return path.Join(dm.dstDirPath, dm.shootingDate.Format("2006/2006-01-02")) // Lightroom のフォルダ名の形式に合わせる
 }
 
 type FilePathMapping struct {
@@ -63,8 +64,9 @@ func GenerateCopyPlan(files []fs.DirEntry, srcDirPath, dstDirPath string) (Plan,
 
 		fileNameWithoutExt := getFileNameWithoutExt(file.Name())
 		plan[fileNameWithoutExt] = &DirectoryMapping{
-			srcDirPath: srcDirPath,
-			dstDirPath: path.Join(dstDirPath, t.Format("2006/2006-01-02")), // Lightroom のフォルダ名の形式に合わせる
+			srcDirPath:   srcDirPath,
+			dstDirPath:   dstDirPath,
+			shootingDate: t,
 		}
 	}
 
