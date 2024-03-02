@@ -95,6 +95,11 @@ func copy(from, to string) (skipped bool, err error) {
 	}
 	defer src.Close()
 
+	srcInfo, err := src.Stat()
+	if err != nil {
+		return false, err
+	}
+
 	if _, err := os.Stat(to); !os.IsNotExist(err) {
 		return true, nil
 	}
@@ -106,6 +111,12 @@ func copy(from, to string) (skipped bool, err error) {
 	defer dst.Close()
 
 	if _, err := io.Copy(dst, src); err != nil {
+		return false, err
+	}
+
+	// Set the timestamp of the destination file to be the same as the source file
+	err = os.Chtimes(to, srcInfo.ModTime(), srcInfo.ModTime())
+	if err != nil {
 		return false, err
 	}
 
