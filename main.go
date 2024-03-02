@@ -17,6 +17,7 @@ import (
 func main() {
 	srcDirPath := flag.String("src", "", "Source directory path")
 	dstDirPath := flag.String("dst", "", "Destination directory path")
+	overwrite := flag.Bool("overwrite", false, "Overwrite existing files")
 
 	flag.Parse()
 
@@ -57,7 +58,7 @@ func main() {
 			continue
 		}
 
-		skipped, err := copy(m.SrcFilePath, m.DstFilePath)
+		skipped, err := copy(m.SrcFilePath, m.DstFilePath, *overwrite)
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "Failed to copy %s to %s (%v)\n", m.SrcFilePath, m.DstFilePath, err)
 		} else if skipped {
@@ -92,7 +93,7 @@ func confirmContinuation() bool {
 	return true
 }
 
-func copy(from, to string) (skipped bool, err error) {
+func copy(from, to string, overwrite bool) (skipped bool, err error) {
 	src, err := os.Open(from)
 	if err != nil {
 		return false, err
@@ -104,8 +105,10 @@ func copy(from, to string) (skipped bool, err error) {
 		return false, err
 	}
 
-	if _, err := os.Stat(to); !os.IsNotExist(err) {
-		return true, nil
+	if !overwrite {
+		if _, err := os.Stat(to); !os.IsNotExist(err) {
+			return true, nil
+		}
 	}
 
 	dst, err := os.Create(to)
