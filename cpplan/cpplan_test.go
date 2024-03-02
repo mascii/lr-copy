@@ -40,93 +40,100 @@ func TestHasNoFilesToCopy(t *testing.T) {
 	assert.True(t, p.HasNoFilesToCopy())
 }
 
-func TestFindFilePathMapping_Separate_Is_True(t *testing.T) {
+func Test_FindFilePathMapping(t *testing.T) {
 	d := time.Date(2022, 1, 1, 0, 0, 0, 0, time.UTC)
 
-	p := Plan{
-		mapping: map[string]*time.Time{
-			"example001": &d,
-			"example002": &d,
+	testCases := []struct {
+		separate bool
+		file     *DirEntryMock
+		ok       bool
+		expected *FilePathMapping
+	}{
+		{
+			separate: true,
+			file: &DirEntryMock{
+				name:  "directory_name",
+				isDir: true,
+			},
+			expected: nil,
+			ok:       false,
 		},
-		srcDirPath:     "/path/to/photos",
-		dstBaseDirPath: "/home/user/photos",
-		separate:       true,
+		{
+			separate: true,
+			file: &DirEntryMock{
+				name:  "example001.jpg",
+				isDir: false,
+			},
+			expected: &FilePathMapping{
+				SrcFilePath: "/path/to/photos/example001.jpg",
+				DstFilePath: "/home/user/photos/2022/2022-01-01/example001.jpg",
+			},
+			ok: true,
+		},
+		{
+			separate: true,
+			file: &DirEntryMock{
+				name:  "example001.raw",
+				isDir: false,
+			},
+			expected: &FilePathMapping{
+				SrcFilePath: "/path/to/photos/example001.raw",
+				DstFilePath: "/home/user/photos/RAW/2022/2022-01-01/example001.raw",
+			},
+			ok: true,
+		},
+		{
+			separate: false,
+			file: &DirEntryMock{
+				name:  "example001.jpg",
+				isDir: false,
+			},
+			expected: &FilePathMapping{
+				SrcFilePath: "/path/to/photos/example001.jpg",
+				DstFilePath: "/home/user/photos/2022/2022-01-01/example001.jpg",
+			},
+			ok: true,
+		},
+		{
+			separate: false,
+			file: &DirEntryMock{
+				name:  "example001.raw",
+				isDir: false,
+			},
+			expected: &FilePathMapping{
+				SrcFilePath: "/path/to/photos/example001.raw",
+				DstFilePath: "/home/user/photos/2022/2022-01-01/example001.raw",
+			},
+			ok: true,
+		},
+		{
+			separate: true,
+			file: &DirEntryMock{
+				name:  "example003.jpg",
+				isDir: false,
+			},
+			expected: nil,
+			ok:       false,
+		},
 	}
 
-	m, ok := p.FindFilePathMapping(&DirEntryMock{
-		name:  "directory_name",
-		isDir: true,
-	})
-	assert.False(t, ok)
-	assert.Nil(t, m)
+	for _, tc := range testCases {
+		t.Run(tc.file.name, func(t *testing.T) {
+			p := Plan{
+				mapping: map[string]*time.Time{
+					"example001": &d,
+					"example002": &d,
+				},
+				srcDirPath:     "/path/to/photos",
+				dstBaseDirPath: "/home/user/photos",
+				separate:       tc.separate,
+			}
 
-	m, ok = p.FindFilePathMapping(&DirEntryMock{
-		name:  "example001.jpg",
-		isDir: false,
-	})
-	assert.True(t, ok)
-	assert.Equal(t, "/path/to/photos/example001.jpg", m.SrcFilePath)
-	assert.Equal(t, "/home/user/photos/2022/2022-01-01/example001.jpg", m.DstFilePath)
-
-	m, ok = p.FindFilePathMapping(&DirEntryMock{
-		name:  "example001.raw",
-		isDir: false,
-	})
-	assert.True(t, ok)
-	assert.Equal(t, "/path/to/photos/example001.raw", m.SrcFilePath)
-	assert.Equal(t, "/home/user/photos/RAW/2022/2022-01-01/example001.raw", m.DstFilePath)
-
-	m, ok = p.FindFilePathMapping(&DirEntryMock{
-		name:  "example003.jpg",
-		isDir: false,
-	})
-	assert.False(t, ok)
-	assert.Nil(t, m)
-
-}
-
-func Test_FindFilePathMapping_Separate_Is_False(t *testing.T) {
-	d := time.Date(2022, 1, 1, 0, 0, 0, 0, time.UTC)
-
-	p := Plan{
-		mapping: map[string]*time.Time{
-			"example001": &d,
-			"example002": &d,
-		},
-		srcDirPath:     "/path/to/photos",
-		dstBaseDirPath: "/home/user/photos",
-		separate:       false,
+			m, ok := p.FindFilePathMapping(tc.file)
+			assert.Equal(t, tc.ok, ok)
+			assert.Equal(t, tc.expected, m)
+		})
 	}
-
-	m, ok := p.FindFilePathMapping(&DirEntryMock{
-		name:  "directory_name",
-		isDir: true,
-	})
-	assert.False(t, ok)
-	assert.Nil(t, m)
-
-	m, ok = p.FindFilePathMapping(&DirEntryMock{
-		name:  "example001.jpg",
-		isDir: false,
-	})
-	assert.True(t, ok)
-	assert.Equal(t, "/path/to/photos/example001.jpg", m.SrcFilePath)
-	assert.Equal(t, "/home/user/photos/2022/2022-01-01/example001.jpg", m.DstFilePath)
-
-	m, ok = p.FindFilePathMapping(&DirEntryMock{
-		name:  "example001.raw",
-		isDir: false,
-	})
-	assert.True(t, ok)
-	assert.Equal(t, "/path/to/photos/example001.raw", m.SrcFilePath)
-	assert.Equal(t, "/home/user/photos/2022/2022-01-01/example001.raw", m.DstFilePath)
-
-	m, ok = p.FindFilePathMapping(&DirEntryMock{
-		name:  "example003.jpg",
-		isDir: false,
-	})
-	assert.False(t, ok)
-	assert.Nil(t, m)
 }
 
 func Test_GenerateCopyPlan(t *testing.T) {
