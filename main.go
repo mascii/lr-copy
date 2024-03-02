@@ -34,10 +34,7 @@ func main() {
 		log.Fatal(err)
 	}
 
-	plan, err := cpplan.GenerateCopyPlan(files, *srcDirPath, *dstBaseDirPath, *separate)
-	if err != nil {
-		panic(err)
-	}
+	plan := cpplan.GenerateCopyPlan(files, *srcDirPath, *dstBaseDirPath, *separate)
 	printPlan(files, plan)
 
 	fmt.Println("-----------------------------------")

@@ -48,10 +48,10 @@ func (p Plan) FindFilePathMapping(file fs.DirEntry) (_ *FilePathMapping, ok bool
 	return &FilePathMapping{
 		SrcFilePath: path.Join(p.srcDirPath, file.Name()),
 		DstFilePath: path.Join(p.getDstDirPath(category, date), file.Name()),
-	}, ok
+	}, true
 }
 
-func GenerateCopyPlan(files []fs.DirEntry, srcDirPath, dstBaseDirPath string, separate bool) (Plan, error) {
+func GenerateCopyPlan(files []fs.DirEntry, srcDirPath, dstBaseDirPath string, separate bool) Plan {
 	mapping := make(map[string]*time.Time, len(files))
 
 	for _, file := range files {
@@ -79,7 +79,7 @@ func GenerateCopyPlan(files []fs.DirEntry, srcDirPath, dstBaseDirPath string, se
 		srcDirPath:     srcDirPath,
 		dstBaseDirPath: dstBaseDirPath,
 		separate:       separate,
-	}, nil
+	}
 }
 
 func isJpegFile(fileName string) bool {
