@@ -73,6 +73,9 @@ func main() {
 
 	printDivider()
 	fmt.Printf("Copied: %d, Skipped: %d, Failed: %d\n", stats.copied, stats.skipped, stats.failed)
+	if stats.failed > 0 {
+		os.Exit(1)
+	}
 }
 
 func printPlan(files []fs.DirEntry, plan cpplan.Plan) {
