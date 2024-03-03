@@ -8,13 +8,13 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-type DirEntryMock struct {
+type dirEntryMock struct {
 	name  string
 	isDir bool
 }
 
-func (d *DirEntryMock) Name() string { return d.name }
-func (d *DirEntryMock) IsDir() bool  { return d.isDir }
+func (d *dirEntryMock) Name() string { return d.name }
+func (d *dirEntryMock) IsDir() bool  { return d.isDir }
 
 func Test_HasNoFilesToCopy(t *testing.T) {
 	d := time.Date(2022, 1, 1, 0, 0, 0, 0, time.UTC)
@@ -46,13 +46,13 @@ func Test_FindFilePathMapping(t *testing.T) {
 
 	testCases := []struct {
 		separate bool
-		file     *DirEntryMock
+		file     *dirEntryMock
 		ok       bool
 		expected *FilePathMapping
 	}{
 		{
 			separate: true,
-			file: &DirEntryMock{
+			file: &dirEntryMock{
 				name:  "directory_name",
 				isDir: true,
 			},
@@ -61,7 +61,7 @@ func Test_FindFilePathMapping(t *testing.T) {
 		},
 		{
 			separate: true,
-			file: &DirEntryMock{
+			file: &dirEntryMock{
 				name:  "example001.jpg",
 				isDir: false,
 			},
@@ -73,7 +73,7 @@ func Test_FindFilePathMapping(t *testing.T) {
 		},
 		{
 			separate: true,
-			file: &DirEntryMock{
+			file: &dirEntryMock{
 				name:  "example001.raw",
 				isDir: false,
 			},
@@ -85,7 +85,7 @@ func Test_FindFilePathMapping(t *testing.T) {
 		},
 		{
 			separate: false,
-			file: &DirEntryMock{
+			file: &dirEntryMock{
 				name:  "example001.jpg",
 				isDir: false,
 			},
@@ -97,7 +97,7 @@ func Test_FindFilePathMapping(t *testing.T) {
 		},
 		{
 			separate: false,
-			file: &DirEntryMock{
+			file: &dirEntryMock{
 				name:  "example001.raw",
 				isDir: false,
 			},
@@ -109,7 +109,7 @@ func Test_FindFilePathMapping(t *testing.T) {
 		},
 		{
 			separate: true,
-			file: &DirEntryMock{
+			file: &dirEntryMock{
 				name:  "example003.jpg",
 				isDir: false,
 			},
@@ -141,7 +141,7 @@ func Test_GenerateCopyPlan(t *testing.T) {
 	date1 := time.Date(2024, 2, 12, 0, 0, 0, 0, time.UTC)
 	date2 := time.Date(2024, 3, 2, 0, 0, 0, 0, time.UTC)
 
-	files := []*DirEntryMock{
+	files := []*dirEntryMock{
 		{
 			name:  "example001.jpg",
 			isDir: false,
