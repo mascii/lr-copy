@@ -3,7 +3,7 @@ package cpplan
 import (
 	"fmt"
 	"os"
-	"path"
+	"path/filepath"
 	"strings"
 	"time"
 
@@ -65,7 +65,7 @@ func GenerateCopyPlan[T DirEntrySubset](files []T, cfg generateCopyPlanConfig) [
 			continue
 		}
 
-		srcFullPath := path.Join(cfg.srcDirPath, file.Name())
+		srcFullPath := filepath.Join(cfg.srcDirPath, file.Name())
 
 		date, err := cfg.loadShootingDateFromExif(srcFullPath)
 		if err != nil {
@@ -89,12 +89,12 @@ func GenerateCopyPlan[T DirEntrySubset](files []T, cfg generateCopyPlanConfig) [
 
 		category := ""
 		if cfg.separate && !isJpegFile(file.Name()) {
-			category = strings.ToUpper(path.Ext(file.Name())[1:]) // "ORF", "ARW", etc.
+			category = strings.ToUpper(filepath.Ext(file.Name())[1:]) // "ORF", "ARW", etc.
 		}
 
 		plan = append(plan, &FilePathMapping{
-			SrcFilePath: path.Join(cfg.srcDirPath, file.Name()),
-			DstFilePath: path.Join(cfg.dstBaseDirPath, category, dateToLightroomFormat(date), file.Name()),
+			SrcFilePath: filepath.Join(cfg.srcDirPath, file.Name()),
+			DstFilePath: filepath.Join(cfg.dstBaseDirPath, category, dateToLightroomFormat(date), file.Name()),
 		})
 	}
 
@@ -102,7 +102,7 @@ func GenerateCopyPlan[T DirEntrySubset](files []T, cfg generateCopyPlanConfig) [
 }
 
 func isJpegFile(fileName string) bool {
-	ext := path.Ext(fileName)
+	ext := filepath.Ext(fileName)
 	switch strings.ToLower(ext) {
 	case ".jpg", ".jpeg":
 		return true
@@ -112,7 +112,7 @@ func isJpegFile(fileName string) bool {
 }
 
 func getFileNameWithoutExt(fileName string) string {
-	return strings.TrimSuffix(fileName, path.Ext(fileName))
+	return strings.TrimSuffix(fileName, filepath.Ext(fileName))
 }
 
 func dateToLightroomFormat(d *time.Time) string {
