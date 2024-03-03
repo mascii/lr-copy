@@ -167,11 +167,11 @@ func Test_GenerateCopyPlan(t *testing.T) {
 			isDir: true,
 		},
 	}
-	cfg := GenerateCopyPlanConfig{
-		SrcDirPath:     "/path/to/photos",
-		DstBaseDirPath: "/home/user/photos",
-		Separate:       true,
-		LoadShootingDateFromExif: func(filePath string) (*time.Time, error) {
+	cfg := generateCopyPlanConfig{
+		srcDirPath:     "/path/to/photos",
+		dstBaseDirPath: "/home/user/photos",
+		separate:       true,
+		loadShootingDateFromExif: func(filePath string) (*time.Time, error) {
 			switch filePath {
 			case "/path/to/photos/example001.jpg":
 				return &date1, nil

@@ -60,23 +60,41 @@ func (p Plan) FindFilePathMapping(file DirEntrySubset) (_ *FilePathMapping, ok b
 	}, true
 }
 
-type GenerateCopyPlanConfig struct {
-	SrcDirPath               string
-	DstBaseDirPath           string
-	Separate                 bool
-	LoadShootingDateFromExif func(filePath string) (*time.Time, error)
+type generateCopyPlanConfig struct {
+	srcDirPath               string
+	dstBaseDirPath           string
+	separate                 bool
+	loadShootingDateFromExif func(filePath string) (*time.Time, error)
 }
 
-func NewGenerateCopyPlanConfig(srcDirPath, dstBaseDirPath string, separate bool) GenerateCopyPlanConfig {
-	return GenerateCopyPlanConfig{
-		SrcDirPath:               srcDirPath,
-		DstBaseDirPath:           dstBaseDirPath,
-		Separate:                 separate,
-		LoadShootingDateFromExif: loadShootingDateFromExif,
+func NewGenerateCopyPlanConfig(srcDirPath, dstBaseDirPath string, separate bool) generateCopyPlanConfig {
+	return generateCopyPlanConfig{
+		srcDirPath:     srcDirPath,
+		dstBaseDirPath: dstBaseDirPath,
+		separate:       separate,
+		loadShootingDateFromExif: func(filePath string) (*time.Time, error) {
+			f, err := os.Open(filePath)
+			if err != nil {
+				return nil, err
+			}
+			defer f.Close()
+
+			x, err := exif.Decode(f)
+			if err != nil {
+				return nil, err
+			}
+
+			t, err := x.DateTime()
+			if err != nil {
+				return nil, err
+			}
+
+			return &t, nil
+		},
 	}
 }
 
-func GenerateCopyPlan[T DirEntrySubset](files []T, cfg GenerateCopyPlanConfig) Plan {
+func GenerateCopyPlan[T DirEntrySubset](files []T, cfg generateCopyPlanConfig) Plan {
 	mapping := make(map[string]*time.Time, len(files))
 
 	for _, file := range files {
@@ -87,9 +105,9 @@ func GenerateCopyPlan[T DirEntrySubset](files []T, cfg GenerateCopyPlanConfig) P
 			continue
 		}
 
-		srcFullPath := path.Join(cfg.SrcDirPath, file.Name())
+		srcFullPath := path.Join(cfg.srcDirPath, file.Name())
 
-		date, err := cfg.LoadShootingDateFromExif(srcFullPath)
+		date, err := cfg.loadShootingDateFromExif(srcFullPath)
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "Failed to load %s (%v)\n", srcFullPath, err)
 			continue
@@ -101,9 +119,9 @@ func GenerateCopyPlan[T DirEntrySubset](files []T, cfg GenerateCopyPlanConfig) P
 
 	return Plan{
 		mapping:        mapping,
-		srcDirPath:     cfg.SrcDirPath,
-		dstBaseDirPath: cfg.DstBaseDirPath,
-		separate:       cfg.Separate,
+		srcDirPath:     cfg.srcDirPath,
+		dstBaseDirPath: cfg.dstBaseDirPath,
+		separate:       cfg.separate,
 	}
 }
 
@@ -119,24 +137,4 @@ func isJpegFile(fileName string) bool {
 
 func getFileNameWithoutExt(fileName string) string {
 	return strings.TrimSuffix(fileName, path.Ext(fileName))
-}
-
-func loadShootingDateFromExif(filePath string) (*time.Time, error) {
-	f, err := os.Open(filePath)
-	if err != nil {
-		return nil, err
-	}
-	defer f.Close()
-
-	x, err := exif.Decode(f)
-	if err != nil {
-		return nil, err
-	}
-
-	t, err := x.DateTime()
-	if err != nil {
-		return nil, err
-	}
-
-	return &t, nil
 }
