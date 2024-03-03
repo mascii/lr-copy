@@ -6,7 +6,7 @@ import (
 	"io"
 	"log"
 	"os"
-	"path"
+	"path/filepath"
 
 	"github.com/mascii/lr-copy/cpplan"
 )
@@ -100,7 +100,7 @@ func copyFile(from, to string, overwrite bool) (skipped bool, err error) {
 	}
 
 	// ディレクトリを作成しておく処理
-	if err := os.MkdirAll(path.Dir(to), 0755); err != nil {
+	if err := os.MkdirAll(filepath.Dir(to), 0755); err != nil {
 		return false, err
 	}
 
