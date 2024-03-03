@@ -2,6 +2,7 @@ package cpplan
 
 import (
 	"errors"
+	"fmt"
 	"testing"
 	"time"
 
@@ -16,131 +17,9 @@ type dirEntryMock struct {
 func (d *dirEntryMock) Name() string { return d.name }
 func (d *dirEntryMock) IsDir() bool  { return d.isDir }
 
-func Test_HasNoFilesToCopy(t *testing.T) {
-	d := time.Date(2022, 1, 1, 0, 0, 0, 0, time.UTC)
-
-	p := Plan{
-		mapping: map[string]*time.Time{
-			"example001": &d,
-			"example002": &d,
-		},
-		srcDirPath:     "/path/to/photos",
-		dstBaseDirPath: "/home/user/photos",
-		separate:       true,
-	}
-
-	assert.False(t, p.HasNoFilesToCopy())
-
-	p = Plan{
-		mapping:        map[string]*time.Time{},
-		srcDirPath:     "/path/to/photos",
-		dstBaseDirPath: "/home/user/photos",
-		separate:       true,
-	}
-
-	assert.True(t, p.HasNoFilesToCopy())
-}
-
-func Test_FindFilePathMapping(t *testing.T) {
-	d := time.Date(2022, 1, 1, 0, 0, 0, 0, time.UTC)
-
-	testCases := []struct {
-		separate bool
-		file     *dirEntryMock
-		ok       bool
-		expected *FilePathMapping
-	}{
-		{
-			separate: true,
-			file: &dirEntryMock{
-				name:  "directory_name",
-				isDir: true,
-			},
-			expected: nil,
-			ok:       false,
-		},
-		{
-			separate: true,
-			file: &dirEntryMock{
-				name:  "example001.jpg",
-				isDir: false,
-			},
-			expected: &FilePathMapping{
-				SrcFilePath: "/path/to/photos/example001.jpg",
-				DstFilePath: "/home/user/photos/2022/2022-01-01/example001.jpg",
-			},
-			ok: true,
-		},
-		{
-			separate: true,
-			file: &dirEntryMock{
-				name:  "example001.raw",
-				isDir: false,
-			},
-			expected: &FilePathMapping{
-				SrcFilePath: "/path/to/photos/example001.raw",
-				DstFilePath: "/home/user/photos/RAW/2022/2022-01-01/example001.raw",
-			},
-			ok: true,
-		},
-		{
-			separate: false,
-			file: &dirEntryMock{
-				name:  "example001.jpg",
-				isDir: false,
-			},
-			expected: &FilePathMapping{
-				SrcFilePath: "/path/to/photos/example001.jpg",
-				DstFilePath: "/home/user/photos/2022/2022-01-01/example001.jpg",
-			},
-			ok: true,
-		},
-		{
-			separate: false,
-			file: &dirEntryMock{
-				name:  "example001.raw",
-				isDir: false,
-			},
-			expected: &FilePathMapping{
-				SrcFilePath: "/path/to/photos/example001.raw",
-				DstFilePath: "/home/user/photos/2022/2022-01-01/example001.raw",
-			},
-			ok: true,
-		},
-		{
-			separate: true,
-			file: &dirEntryMock{
-				name:  "example003.jpg",
-				isDir: false,
-			},
-			expected: nil,
-			ok:       false,
-		},
-	}
-
-	for _, tc := range testCases {
-		t.Run(tc.file.name, func(t *testing.T) {
-			p := Plan{
-				mapping: map[string]*time.Time{
-					"example001": &d,
-					"example002": &d,
-				},
-				srcDirPath:     "/path/to/photos",
-				dstBaseDirPath: "/home/user/photos",
-				separate:       tc.separate,
-			}
-
-			m, ok := p.FindFilePathMapping(tc.file)
-			assert.Equal(t, tc.ok, ok)
-			assert.Equal(t, tc.expected, m)
-		})
-	}
-}
-
 func Test_GenerateCopyPlan(t *testing.T) {
 	date1 := time.Date(2024, 2, 12, 0, 0, 0, 0, time.UTC)
 	date2 := time.Date(2024, 3, 2, 0, 0, 0, 0, time.UTC)
-
 	files := []*dirEntryMock{
 		{
 			name:  "example001.jpg",
@@ -167,35 +46,80 @@ func Test_GenerateCopyPlan(t *testing.T) {
 			isDir: true,
 		},
 	}
-	cfg := generateCopyPlanConfig{
-		srcDirPath:     "/path/to/photos",
-		dstBaseDirPath: "/home/user/photos",
-		separate:       true,
-		loadShootingDateFromExif: func(filePath string) (*time.Time, error) {
-			switch filePath {
-			case "/path/to/photos/example001.jpg":
-				return &date1, nil
-			case "/path/to/photos/example002.jpg":
-				return &date2, nil
-			case "/path/to/photos/error.jpg":
-				return nil, errors.New("error.jpg")
-			default:
-				assert.FailNow(t, "unexpected file path: %s", filePath)
-				panic(filePath)
-			}
+	loadShootingDateFromExif := func(filePath string) (*time.Time, error) {
+		switch filePath {
+		case "/path/to/photos/example001.jpg":
+			return &date1, nil
+		case "/path/to/photos/example002.jpg":
+			return &date2, nil
+		case "/path/to/photos/error.jpg":
+			return nil, errors.New("error.jpg")
+		default:
+			assert.FailNow(t, "unexpected file path: %s", filePath)
+			panic(filePath)
+		}
+	}
+
+	testCases := []struct {
+		separate bool
+		expected []*FilePathMapping
+	}{
+		{
+			separate: true,
+			expected: []*FilePathMapping{
+				{
+					SrcFilePath: "/path/to/photos/example001.jpg",
+					DstFilePath: "/home/user/photos/2024/2024-02-12/example001.jpg",
+				},
+				{
+					SrcFilePath: "/path/to/photos/example001.raw",
+					DstFilePath: "/home/user/photos/RAW/2024/2024-02-12/example001.raw",
+				},
+				{
+					SrcFilePath: "/path/to/photos/example002.jpg",
+					DstFilePath: "/home/user/photos/2024/2024-03-02/example002.jpg",
+				},
+				{
+					SrcFilePath: "/path/to/photos/example002.raw",
+					DstFilePath: "/home/user/photos/RAW/2024/2024-03-02/example002.raw",
+				},
+			},
+		},
+		{
+			separate: false,
+			expected: []*FilePathMapping{
+				{
+					SrcFilePath: "/path/to/photos/example001.jpg",
+					DstFilePath: "/home/user/photos/2024/2024-02-12/example001.jpg",
+				},
+				{
+					SrcFilePath: "/path/to/photos/example001.raw",
+					DstFilePath: "/home/user/photos/2024/2024-02-12/example001.raw",
+				},
+				{
+					SrcFilePath: "/path/to/photos/example002.jpg",
+					DstFilePath: "/home/user/photos/2024/2024-03-02/example002.jpg",
+				},
+				{
+					SrcFilePath: "/path/to/photos/example002.raw",
+					DstFilePath: "/home/user/photos/2024/2024-03-02/example002.raw",
+				},
+			},
 		},
 	}
 
-	plan := GenerateCopyPlan(files, cfg)
-	assert.Equal(t, Plan{
-		mapping: map[string]*time.Time{
-			"example001": &date1,
-			"example002": &date2,
-		},
-		srcDirPath:     "/path/to/photos",
-		dstBaseDirPath: "/home/user/photos",
-		separate:       true,
-	}, plan)
+	for _, tc := range testCases {
+		t.Run(fmt.Sprintf("separate=%v", tc.separate), func(t *testing.T) {
+			cfg := generateCopyPlanConfig{
+				srcDirPath:               "/path/to/photos",
+				dstBaseDirPath:           "/home/user/photos",
+				separate:                 tc.separate,
+				loadShootingDateFromExif: loadShootingDateFromExif,
+			}
+			plan := GenerateCopyPlan(files, cfg)
+			assert.Equal(t, tc.expected, plan)
+		})
+	}
 }
 
 func Test_isJpegFile(t *testing.T) {

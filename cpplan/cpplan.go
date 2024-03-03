@@ -21,37 +21,6 @@ type FilePathMapping struct {
 	DstFilePath string
 }
 
-type Plan struct {
-	mapping        map[string]*time.Time // mapping[ファイル名(拡張子なし)] = 撮影日時
-	srcDirPath     string
-	dstBaseDirPath string
-	separate       bool
-}
-
-func (p Plan) HasNoFilesToCopy() bool {
-	return len(p.mapping) == 0
-}
-
-func (p Plan) FindFilePathMapping(file DirEntrySubset) (_ *FilePathMapping, ok bool) {
-	if file.IsDir() {
-		return nil, false
-	}
-	date, ok := p.mapping[getFileNameWithoutExt(file.Name())]
-	if !ok {
-		return nil, false
-	}
-
-	category := ""
-	if p.separate && !isJpegFile(file.Name()) {
-		category = strings.ToUpper(path.Ext(file.Name())[1:]) // "ORF", "ARW", etc.
-	}
-
-	return &FilePathMapping{
-		SrcFilePath: path.Join(p.srcDirPath, file.Name()),
-		DstFilePath: path.Join(p.dstBaseDirPath, category, dateToLightroomFormat(date), file.Name()),
-	}, true
-}
-
 type generateCopyPlanConfig struct {
 	srcDirPath               string
 	dstBaseDirPath           string
@@ -86,9 +55,8 @@ func NewGenerateCopyPlanConfig(srcDirPath, dstBaseDirPath string, separate bool)
 	}
 }
 
-func GenerateCopyPlan[T DirEntrySubset](files []T, cfg generateCopyPlanConfig) Plan {
+func GenerateCopyPlan[T DirEntrySubset](files []T, cfg generateCopyPlanConfig) []*FilePathMapping {
 	mapping := make(map[string]*time.Time, len(files))
-
 	for _, file := range files {
 		if file.IsDir() {
 			continue
@@ -109,12 +77,28 @@ func GenerateCopyPlan[T DirEntrySubset](files []T, cfg generateCopyPlanConfig) P
 		mapping[fileNameWithoutExt] = date
 	}
 
-	return Plan{
-		mapping:        mapping,
-		srcDirPath:     cfg.srcDirPath,
-		dstBaseDirPath: cfg.dstBaseDirPath,
-		separate:       cfg.separate,
+	plan := make([]*FilePathMapping, 0, len(files))
+	for _, file := range files {
+		if file.IsDir() {
+			continue
+		}
+		date, ok := mapping[getFileNameWithoutExt(file.Name())]
+		if !ok {
+			continue
+		}
+
+		category := ""
+		if cfg.separate && !isJpegFile(file.Name()) {
+			category = strings.ToUpper(path.Ext(file.Name())[1:]) // "ORF", "ARW", etc.
+		}
+
+		plan = append(plan, &FilePathMapping{
+			SrcFilePath: path.Join(cfg.srcDirPath, file.Name()),
+			DstFilePath: path.Join(cfg.dstBaseDirPath, category, dateToLightroomFormat(date), file.Name()),
+		})
 	}
+
+	return plan
 }
 
 func isJpegFile(fileName string) bool {

@@ -5,7 +5,6 @@ import (
 	"flag"
 	"fmt"
 	"io"
-	"io/fs"
 	"log"
 	"os"
 	"path"
@@ -36,12 +35,12 @@ func main() {
 
 	cfg := cpplan.NewGenerateCopyPlanConfig(*srcDirPath, *dstBaseDirPath, *separate)
 	plan := cpplan.GenerateCopyPlan(files, cfg)
-	if plan.HasNoFilesToCopy() {
+	if len(plan) == 0 {
 		fmt.Println("No files to copy.")
 		return
 	}
 
-	printPlan(files, plan)
+	printPlan(plan)
 	printDivider()
 	if !confirmContinuation() {
 		return
@@ -53,12 +52,7 @@ func main() {
 		failed  uint
 	}{}
 
-	for _, file := range files {
-		m, ok := plan.FindFilePathMapping(file)
-		if !ok {
-			continue
-		}
-
+	for _, m := range plan {
 		skipped, err := copyFile(m.SrcFilePath, m.DstFilePath, *overwrite)
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "Failed to copy %s to %s (%v)\n", m.SrcFilePath, m.DstFilePath, err)
@@ -79,12 +73,8 @@ func main() {
 	}
 }
 
-func printPlan(files []fs.DirEntry, plan cpplan.Plan) {
-	for _, file := range files {
-		m, ok := plan.FindFilePathMapping(file)
-		if !ok {
-			continue
-		}
+func printPlan(plan []*cpplan.FilePathMapping) {
+	for _, m := range plan {
 		fmt.Printf("%s => %s\n", m.SrcFilePath, m.DstFilePath)
 	}
 }
