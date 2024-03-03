@@ -28,14 +28,6 @@ type Plan struct {
 	separate       bool
 }
 
-func (p Plan) getDstDirPath(category string, date *time.Time) string {
-	return path.Join(
-		p.dstBaseDirPath,
-		category,
-		date.Format("2006/2006-01-02"), // Lightroom のフォルダ名の形式に合わせる
-	)
-}
-
 func (p Plan) HasNoFilesToCopy() bool {
 	return len(p.mapping) == 0
 }
@@ -56,7 +48,7 @@ func (p Plan) FindFilePathMapping(file DirEntrySubset) (_ *FilePathMapping, ok b
 
 	return &FilePathMapping{
 		SrcFilePath: path.Join(p.srcDirPath, file.Name()),
-		DstFilePath: path.Join(p.getDstDirPath(category, date), file.Name()),
+		DstFilePath: path.Join(p.dstBaseDirPath, category, dateToLightroomFormat(date), file.Name()),
 	}, true
 }
 
@@ -137,4 +129,8 @@ func isJpegFile(fileName string) bool {
 
 func getFileNameWithoutExt(fileName string) string {
 	return strings.TrimSuffix(fileName, path.Ext(fileName))
+}
+
+func dateToLightroomFormat(d *time.Time) string {
+	return d.Format("2006/2006-01-02") // Lightroom のフォルダ名の形式に合わせる
 }

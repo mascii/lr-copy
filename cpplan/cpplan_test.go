@@ -234,3 +234,8 @@ func Test_getFileNameWithoutExt(t *testing.T) {
 		})
 	}
 }
+
+func Test_dateToLightroomFormat(t *testing.T) {
+	d := time.Date(2024, 2, 12, 0, 0, 0, 0, time.UTC)
+	assert.Equal(t, "2024/2024-02-12", dateToLightroomFormat(&d))
+}
