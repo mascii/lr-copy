@@ -1,12 +1,14 @@
 package main
 
 import (
+	"bufio"
 	"flag"
 	"fmt"
 	"io"
 	"log"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/mascii/lr-copy/cpplan"
 )
@@ -79,6 +81,21 @@ func printPlan(plan []*cpplan.FilePathMapping) {
 
 func printDivider() {
 	fmt.Println("-----------------------------------")
+}
+
+func confirmContinuation() bool {
+	reader := bufio.NewReader(os.Stdin)
+	fmt.Print("Continue with the process? (y/N): ")
+	text, _ := reader.ReadString('\n')
+	text = strings.Replace(text, "\r\n", "", -1) // for Windows
+	text = strings.Replace(text, "\n", "", -1)
+
+	if strings.ToLower(text) != "y" {
+		fmt.Println("Process aborted by the user.")
+		return false
+	}
+
+	return true
 }
 
 func copyFile(from, to string, overwrite bool) (skipped bool, err error) {
