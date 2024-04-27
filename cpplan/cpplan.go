@@ -25,7 +25,7 @@ type generateCopyPlanConfig struct {
 	srcDirPath               string
 	dstBaseDirPath           string
 	separate                 bool
-	loadShootingDateFromExif func(filePath string) (*time.Time, error)
+	loadShootingDateFromJpeg func(filePath string) (*time.Time, error)
 }
 
 func NewGenerateCopyPlanConfig(srcDirPath, dstBaseDirPath string, separate bool) generateCopyPlanConfig {
@@ -33,7 +33,7 @@ func NewGenerateCopyPlanConfig(srcDirPath, dstBaseDirPath string, separate bool)
 		srcDirPath:     srcDirPath,
 		dstBaseDirPath: dstBaseDirPath,
 		separate:       separate,
-		loadShootingDateFromExif: func(filePath string) (*time.Time, error) {
+		loadShootingDateFromJpeg: func(filePath string) (*time.Time, error) {
 			f, err := os.Open(filePath)
 			if err != nil {
 				return nil, err
@@ -67,7 +67,7 @@ func GenerateCopyPlan[T DirEntrySubset](files []T, cfg generateCopyPlanConfig) [
 
 		srcFullPath := filepath.Join(cfg.srcDirPath, file.Name())
 
-		date, err := cfg.loadShootingDateFromExif(srcFullPath)
+		date, err := cfg.loadShootingDateFromJpeg(srcFullPath)
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "Failed to load %s (%v)\n", srcFullPath, err)
 			continue

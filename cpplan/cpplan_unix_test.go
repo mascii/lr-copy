@@ -49,7 +49,7 @@ func Test_GenerateCopyPlan(t *testing.T) {
 			isDir: true,
 		},
 	}
-	loadShootingDateFromExif := func(filePath string) (*time.Time, error) {
+	loadShootingDateFromJpeg := func(filePath string) (*time.Time, error) {
 		switch filePath {
 		case "/path/to/photos/example001.jpg":
 			return &date1, nil
@@ -117,7 +117,7 @@ func Test_GenerateCopyPlan(t *testing.T) {
 				srcDirPath:               "/path/to/photos",
 				dstBaseDirPath:           "/home/user/photos",
 				separate:                 tc.separate,
-				loadShootingDateFromExif: loadShootingDateFromExif,
+				loadShootingDateFromJpeg: loadShootingDateFromJpeg,
 			}
 			plan := GenerateCopyPlan(files, cfg)
 			assert.Equal(t, tc.expected, plan)
