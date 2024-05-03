@@ -7,7 +7,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/rwcarlsen/goexif/exif"
+	"github.com/mascii/lr-copy/extractor"
 )
 
 // DirEntrySubset is a subset of fs.DirEntry.
@@ -30,28 +30,10 @@ type generateCopyPlanConfig struct {
 
 func NewGenerateCopyPlanConfig(srcDirPath, dstBaseDirPath string, separate bool) generateCopyPlanConfig {
 	return generateCopyPlanConfig{
-		srcDirPath:     srcDirPath,
-		dstBaseDirPath: dstBaseDirPath,
-		separate:       separate,
-		loadShootingDateFromJpeg: func(filePath string) (*time.Time, error) {
-			f, err := os.Open(filePath)
-			if err != nil {
-				return nil, err
-			}
-			defer f.Close()
-
-			x, err := exif.Decode(f)
-			if err != nil {
-				return nil, err
-			}
-
-			t, err := x.DateTime()
-			if err != nil {
-				return nil, err
-			}
-
-			return &t, nil
-		},
+		srcDirPath:               srcDirPath,
+		dstBaseDirPath:           dstBaseDirPath,
+		separate:                 separate,
+		loadShootingDateFromJpeg: extractor.LoadShootingDateFromJpeg,
 	}
 }
 
