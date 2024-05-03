@@ -89,7 +89,7 @@ func GenerateCopyPlan[T DirEntrySubset](files []T, cfg generateCopyPlanConfig) [
 
 		category := ""
 		if cfg.separate && !isJpegFile(file.Name()) {
-			category = strings.ToUpper(filepath.Ext(file.Name())[1:]) // "ORF", "ARW", etc.
+			category = getExtByFileName(file.Name()) // "ORF", "ARW", etc.
 		}
 
 		plan = append(plan, &FilePathMapping{
@@ -109,6 +109,10 @@ func isJpegFile(fileName string) bool {
 	default:
 		return false
 	}
+}
+
+func getExtByFileName(fileName string) string {
+	return strings.ToUpper(filepath.Ext(fileName)[1:]) // "JPG", "JPEG", etc.
 }
 
 func getFileNameWithoutExt(fileName string) string {
