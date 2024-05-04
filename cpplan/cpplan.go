@@ -22,18 +22,21 @@ type FilePathMapping struct {
 }
 
 type generateCopyPlanConfig struct {
-	srcDirPath               string
-	dstBaseDirPath           string
-	separate                 bool
-	loadShootingDateFromJpeg func(filePath string) (*time.Time, error)
+	srcDirPath             string
+	dstBaseDirPath         string
+	separate               bool
+	shootingDateExtractors map[string]func(filePath string) (*time.Time, error)
 }
 
 func NewGenerateCopyPlanConfig(srcDirPath, dstBaseDirPath string, separate bool) generateCopyPlanConfig {
 	return generateCopyPlanConfig{
-		srcDirPath:               srcDirPath,
-		dstBaseDirPath:           dstBaseDirPath,
-		separate:                 separate,
-		loadShootingDateFromJpeg: extractor.LoadShootingDateFromJpeg,
+		srcDirPath:     srcDirPath,
+		dstBaseDirPath: dstBaseDirPath,
+		separate:       separate,
+		shootingDateExtractors: map[string]func(filePath string) (*time.Time, error){
+			"JPG":  extractor.LoadShootingDateFromJpeg,
+			"JPEG": extractor.LoadShootingDateFromJpeg,
+		},
 	}
 }
 
@@ -43,13 +46,14 @@ func GenerateCopyPlan[T DirEntrySubset](files []T, cfg generateCopyPlanConfig) [
 		if file.IsDir() {
 			continue
 		}
-		if !isJpegFile(file.Name()) {
+		extractor, ok := cfg.shootingDateExtractors[getExtByFileName(file.Name())]
+		if !ok {
 			continue
 		}
 
 		srcFullPath := filepath.Join(cfg.srcDirPath, file.Name())
 
-		date, err := cfg.loadShootingDateFromJpeg(srcFullPath)
+		date, err := extractor(srcFullPath)
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "Failed to load %s (%v)\n", srcFullPath, err)
 			continue
@@ -70,8 +74,10 @@ func GenerateCopyPlan[T DirEntrySubset](files []T, cfg generateCopyPlanConfig) [
 		}
 
 		category := ""
-		if cfg.separate && !isJpegFile(file.Name()) {
-			category = getExtByFileName(file.Name()) // "ORF", "ARW", etc.
+		if cfg.separate {
+			if _, ok = cfg.shootingDateExtractors[getExtByFileName(file.Name())]; !ok {
+				category = getExtByFileName(file.Name()) // "ORF", "ARW", etc.
+			}
 		}
 
 		plan = append(plan, &FilePathMapping{
@@ -81,16 +87,6 @@ func GenerateCopyPlan[T DirEntrySubset](files []T, cfg generateCopyPlanConfig) [
 	}
 
 	return plan
-}
-
-func isJpegFile(fileName string) bool {
-	ext := filepath.Ext(fileName)
-	switch strings.ToLower(ext) {
-	case ".jpg", ".jpeg":
-		return true
-	default:
-		return false
-	}
 }
 
 func getExtByFileName(fileName string) string {

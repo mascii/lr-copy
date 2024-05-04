@@ -114,10 +114,12 @@ func Test_GenerateCopyPlan(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(fmt.Sprintf("separate=%v", tc.separate), func(t *testing.T) {
 			cfg := generateCopyPlanConfig{
-				srcDirPath:               "C:\\path\\to\\photos",
-				dstBaseDirPath:           "D:\\photos",
-				separate:                 tc.separate,
-				loadShootingDateFromJpeg: loadShootingDateFromJpeg,
+				srcDirPath:     "C:\\path\\to\\photos",
+				dstBaseDirPath: "D:\\photos",
+				separate:       tc.separate,
+				shootingDateExtractors: map[string]func(filePath string) (*time.Time, error){
+					"JPG": loadShootingDateFromJpeg,
+				},
 			}
 			plan := GenerateCopyPlan(files, cfg)
 			assert.Equal(t, tc.expected, plan)
