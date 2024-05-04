@@ -37,6 +37,7 @@ func NewGenerateCopyPlanConfig(srcDirPath, dstBaseDirPath string, separate bool)
 			"JPG":  extractor.LoadShootingDateFromJpeg,
 			"JPEG": extractor.LoadShootingDateFromJpeg,
 			"HEIC": extractor.LoadShootingDateFromHeic,
+			"MOV":  extractor.LoadShootingDateFromMov,
 		},
 	}
 }
