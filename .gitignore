@@ -1,4 +1,7 @@
 .DS_Store
+lr-copy
 *.jpeg
 *.jpg
 *.orf
+*.heic
+*.mov
