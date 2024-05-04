@@ -1,6 +1,6 @@
 module github.com/mascii/lr-copy
 
-go 1.21.5
+go 1.22.2
 
 require (
 	github.com/dsoprea/go-heic-exif-extractor v0.0.0-20210512044107-62067e44c235
