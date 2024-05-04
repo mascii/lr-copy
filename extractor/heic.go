@@ -2,7 +2,6 @@ package extractor
 
 import (
 	"bytes"
-	"os"
 	"time"
 
 	heicexif "github.com/dsoprea/go-heic-exif-extractor"
@@ -10,13 +9,7 @@ import (
 )
 
 func LoadShootingDateFromHeic(filePath string) (*time.Time, error) {
-	f, err := os.Open(filePath)
-	if err != nil {
-		return nil, err
-	}
-	defer f.Close()
-
-	mc, err := heicexif.NewHeicExifMediaParser().Parse(f, 0)
+	mc, err := heicexif.NewHeicExifMediaParser().ParseFile(filePath)
 	if err != nil {
 		return nil, err
 	}
