@@ -92,7 +92,11 @@ func GenerateCopyPlan[T DirEntrySubset](files []T, cfg generateCopyPlanConfig) [
 }
 
 func getExtByFileName(fileName string) string {
-	return strings.ToUpper(filepath.Ext(fileName)[1:]) // "JPG", "JPEG", etc.
+	ext := filepath.Ext(fileName)
+	if len(ext) == 0 {
+		return ""
+	}
+	return strings.ToUpper(ext[1:]) // "JPG", "JPEG", etc.
 }
 
 func getFileNameWithoutExt(fileName string) string {

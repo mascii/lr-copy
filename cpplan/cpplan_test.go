@@ -18,6 +18,7 @@ func Test_getExtByFileName(t *testing.T) {
 		{"example.JPEG", "JPEG"},
 		{"example.orf", "ORF"},
 		{"example.ORF", "ORF"},
+		{"example", ""},
 	}
 
 	for _, tc := range testCases {
