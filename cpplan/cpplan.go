@@ -15,7 +15,6 @@ import (
 // DirEntrySubset is a subset of fs.DirEntry.
 type DirEntrySubset interface {
 	Name() string
-	IsDir() bool
 }
 
 type FilePathMapping struct {
@@ -50,9 +49,6 @@ func NewGenerateCopyPlanConfig(srcDirPath, dstBaseDirPath string, separate, fall
 func GenerateCopyPlan[T DirEntrySubset](files []T, cfg generateCopyPlanConfig) []*FilePathMapping {
 	mapping := make(map[string]*time.Time, len(files))
 	for _, file := range files {
-		if file.IsDir() {
-			continue
-		}
 		extractor, ok := cfg.shootingDateExtractors[getExtByFileName(file.Name())]
 		if !ok {
 			continue
@@ -77,9 +73,6 @@ func GenerateCopyPlan[T DirEntrySubset](files []T, cfg generateCopyPlanConfig) [
 
 	plan := make([]*FilePathMapping, 0, len(files))
 	for _, file := range files {
-		if file.IsDir() {
-			continue
-		}
 		date, ok := mapping[getFileNameWithoutExt(file.Name())]
 		if !ok {
 			continue

@@ -8,6 +8,7 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"slices"
 	"strings"
 
 	"github.com/mascii/lr-copy/cpplan"
@@ -33,6 +34,9 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
+	files = slices.DeleteFunc(files, func(f os.DirEntry) bool {
+		return f.IsDir()
+	})
 
 	cfg := cpplan.NewGenerateCopyPlanConfig(*srcDirPath, *dstBaseDirPath, *separate, *fallback)
 	plan := cpplan.GenerateCopyPlan(files, cfg)

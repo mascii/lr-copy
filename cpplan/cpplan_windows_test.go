@@ -13,40 +13,29 @@ import (
 )
 
 type dirEntryMock struct {
-	name  string
-	isDir bool
+	name string
 }
 
 func (d *dirEntryMock) Name() string { return d.name }
-func (d *dirEntryMock) IsDir() bool  { return d.isDir }
 
 func Test_GenerateCopyPlan(t *testing.T) {
 	date1 := time.Date(2024, 2, 12, 0, 0, 0, 0, time.UTC)
 	date2 := time.Date(2024, 3, 2, 0, 0, 0, 0, time.UTC)
 	files := []*dirEntryMock{
 		{
-			name:  "example001.jpg",
-			isDir: false,
+			name: "example001.jpg",
 		},
 		{
-			name:  "example001.raw",
-			isDir: false,
+			name: "example001.raw",
 		},
 		{
-			name:  "example002.jpg",
-			isDir: false,
+			name: "example002.jpg",
 		},
 		{
-			name:  "example002.raw",
-			isDir: false,
+			name: "example002.raw",
 		},
 		{
-			name:  "error.jpg",
-			isDir: false,
-		},
-		{
-			name:  "directory_name",
-			isDir: true,
+			name: "error.jpg",
 		},
 	}
 	loadShootingDateFromJpeg := func(filePath string) (*time.Time, error) {
