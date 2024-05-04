@@ -35,7 +35,7 @@ func main() {
 		log.Fatal(err)
 	}
 	files = slices.DeleteFunc(files, func(f os.DirEntry) bool {
-		return f.IsDir()
+		return f.IsDir() || f.Name()[0] == '.'
 	})
 
 	cfg := cpplan.NewGenerateCopyPlanConfig(*srcDirPath, *dstBaseDirPath, *separate, *fallback)
