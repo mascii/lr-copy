@@ -36,6 +36,7 @@ func NewGenerateCopyPlanConfig(srcDirPath, dstBaseDirPath string, separate bool)
 		shootingDateExtractors: map[string]func(filePath string) (*time.Time, error){
 			"JPG":  extractor.LoadShootingDateFromJpeg,
 			"JPEG": extractor.LoadShootingDateFromJpeg,
+			"HEIC": extractor.LoadShootingDateFromHeic,
 		},
 	}
 }
