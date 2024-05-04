@@ -2,6 +2,8 @@ package cpplan
 
 import (
 	"fmt"
+	"io/fs"
+	"log"
 	"os"
 	"path/filepath"
 	"strings"
@@ -25,14 +27,16 @@ type generateCopyPlanConfig struct {
 	srcDirPath             string
 	dstBaseDirPath         string
 	separate               bool
+	fallback               bool
 	shootingDateExtractors map[string]func(filePath string) (*time.Time, error)
 }
 
-func NewGenerateCopyPlanConfig(srcDirPath, dstBaseDirPath string, separate bool) generateCopyPlanConfig {
+func NewGenerateCopyPlanConfig(srcDirPath, dstBaseDirPath string, separate, fallback bool) generateCopyPlanConfig {
 	return generateCopyPlanConfig{
 		srcDirPath:     srcDirPath,
 		dstBaseDirPath: dstBaseDirPath,
 		separate:       separate,
+		fallback:       fallback,
 		shootingDateExtractors: map[string]func(filePath string) (*time.Time, error){
 			"JPG":  extractor.LoadShootingDateFromJpeg,
 			"JPEG": extractor.LoadShootingDateFromJpeg,
@@ -55,15 +59,20 @@ func GenerateCopyPlan[T DirEntrySubset](files []T, cfg generateCopyPlanConfig) [
 		}
 
 		srcFullPath := filepath.Join(cfg.srcDirPath, file.Name())
-
-		date, err := extractor(srcFullPath)
-		if err != nil {
-			fmt.Fprintf(os.Stderr, "Failed to load %s (%v)\n", srcFullPath, err)
-			continue
-		}
-
 		fileNameWithoutExt := getFileNameWithoutExt(file.Name())
-		mapping[fileNameWithoutExt] = date
+
+		if date, err := extractor(srcFullPath); err == nil {
+			mapping[fileNameWithoutExt] = date
+		} else if file, ok := any(file).(fs.DirEntry); cfg.fallback && ok {
+			info, err := file.Info()
+			if err != nil {
+				log.Fatal(err)
+			}
+			modTime := info.ModTime()
+			mapping[fileNameWithoutExt] = &modTime
+		} else {
+			fmt.Fprintf(os.Stderr, "Failed to load %s (%v)\n", srcFullPath, err)
+		}
 	}
 
 	plan := make([]*FilePathMapping, 0, len(files))

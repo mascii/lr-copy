@@ -19,6 +19,7 @@ func main() {
 	dstBaseDirPath := flag.String("dst", "", "Destination directory base path")
 	overwrite := flag.Bool("overwrite", false, "Overwrite existing files")
 	separate := flag.Bool("separate", true, "Separate directory excepting JPEG by file type (e.g. ORF, ARW, etc.)")
+	fallback := flag.Bool("fallback", false, "If the date of shooting is unknown, fall back to the file's modification time")
 
 	flag.Parse()
 
@@ -33,7 +34,7 @@ func main() {
 		log.Fatal(err)
 	}
 
-	cfg := cpplan.NewGenerateCopyPlanConfig(*srcDirPath, *dstBaseDirPath, *separate)
+	cfg := cpplan.NewGenerateCopyPlanConfig(*srcDirPath, *dstBaseDirPath, *separate, *fallback)
 	plan := cpplan.GenerateCopyPlan(files, cfg)
 	if len(plan) == 0 {
 		fmt.Println("No files to copy.")
