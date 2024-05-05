@@ -16,6 +16,8 @@ import (
 
 // main
 func main() {
+	log.SetFlags(0) // disable timestamps
+
 	srcDirPath := flag.String("src", "", "Source directory path")
 	dstBaseDirPath := flag.String("dst", "", "Destination directory base path")
 	overwrite := flag.Bool("overwrite", false, "Overwrite existing files")
@@ -25,7 +27,7 @@ func main() {
 	flag.Parse()
 
 	if *srcDirPath == "" || *dstBaseDirPath == "" {
-		fmt.Print("Please provide source and destination directory paths.\n\n")
+		log.Print("Please provide source and destination directory paths.\n\n")
 		flag.Usage()
 		return
 	}
@@ -60,7 +62,7 @@ func main() {
 	for _, m := range plan {
 		skipped, err := copyFile(m.SrcFilePath, m.DstFilePath, *overwrite)
 		if err != nil {
-			fmt.Fprintf(os.Stderr, "Failed to copy %s to %s (%v)\n", m.SrcFilePath, m.DstFilePath, err)
+			log.Printf("Failed to copy %s to %s (%v)\n", m.SrcFilePath, m.DstFilePath, err)
 			stats.failed++
 		} else if skipped {
 			fmt.Printf("Skipped %s to %s\n", m.SrcFilePath, m.DstFilePath)

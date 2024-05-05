@@ -1,10 +1,8 @@
 package cpplan
 
 import (
-	"fmt"
 	"io/fs"
 	"log"
-	"os"
 	"path/filepath"
 	"strings"
 	"time"
@@ -66,9 +64,9 @@ func GenerateCopyPlan[T DirEntrySubset](files []T, cfg generateCopyPlanConfig) [
 			}
 			mt := info.ModTime()
 			mapping[fileNameWithoutExt] = &mt
-			fmt.Fprintf(os.Stderr, "Failed to load the shooting date in %s (%v), mod time will be used as a fallback (%v)\n", srcFullPath, err, mt)
+			log.Printf("Failed to load the shooting date in %s (%v), mod time will be used as a fallback (%v)\n", srcFullPath, err, mt)
 		} else {
-			fmt.Fprintf(os.Stderr, "Failed to load the shooting date in %s (%v)\n", srcFullPath, err)
+			log.Printf("Failed to load the shooting date in %s (%v)\n", srcFullPath, err)
 		}
 	}
 
