@@ -60,14 +60,15 @@ func GenerateCopyPlan[T DirEntrySubset](files []T, cfg generateCopyPlanConfig) [
 		if date, err := extractor(srcFullPath); err == nil {
 			mapping[fileNameWithoutExt] = date
 		} else if file, ok := any(file).(fs.DirEntry); cfg.fallback && ok {
-			info, err := file.Info()
-			if err != nil {
-				log.Fatal(err)
+			info, err2 := file.Info()
+			if err2 != nil {
+				log.Fatal(err2)
 			}
 			modTime := info.ModTime()
 			mapping[fileNameWithoutExt] = &modTime
+			fmt.Fprintf(os.Stderr, "Failed to load the shooting date in %s (%v), mod time will be used as a fallback (%v)\n", srcFullPath, err, modTime)
 		} else {
-			fmt.Fprintf(os.Stderr, "Failed to load %s (%v)\n", srcFullPath, err)
+			fmt.Fprintf(os.Stderr, "Failed to load the shooting date in %s (%v)\n", srcFullPath, err)
 		}
 	}
 
