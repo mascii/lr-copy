@@ -29,7 +29,7 @@ func main() {
 	if *srcDirPath == "" || *dstBaseDirPath == "" {
 		log.Print("Please provide source and destination directory paths.\n\n")
 		flag.Usage()
-		return
+		os.Exit(1)
 	}
 
 	files, err := os.ReadDir(*srcDirPath)
