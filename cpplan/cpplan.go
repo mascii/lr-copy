@@ -81,8 +81,9 @@ func GenerateCopyPlan[T DirEntrySubset](files []T, cfg generateCopyPlanConfig) [
 
 		category := ""
 		if cfg.separate {
-			if _, ok = cfg.shootingDateExtractors[getExtByFileName(file.Name())]; !ok {
-				category = getExtByFileName(file.Name()) // "ORF", "ARW", etc.
+			ext := getExtByFileName(file.Name())
+			if _, ok = cfg.shootingDateExtractors[ext]; !ok {
+				category = ext // "ORF", "ARW", etc.
 			}
 		}
 
