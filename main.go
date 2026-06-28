@@ -23,6 +23,7 @@ func main() {
 	overwrite := flag.Bool("overwrite", false, "Overwrite existing files")
 	separate := flag.Bool("separate", true, "Separate directory excepting JPEG by file type (e.g. ORF, ARW, etc.)")
 	fallback := flag.Bool("fallback", false, "If the date of shooting is unknown, fall back to the file's modification time")
+	yes := flag.Bool("y", false, "Skip confirmation prompt")
 
 	flag.Parse()
 
@@ -47,10 +48,12 @@ func main() {
 		return
 	}
 
-	printPlan(plan)
-	printDivider()
-	if !confirmContinuation() {
-		return
+	if !*yes {
+		printPlan(plan)
+		printDivider()
+		if !confirmContinuation() {
+			return
+		}
 	}
 
 	stats := struct {
